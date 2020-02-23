@@ -1,0 +1,19 @@
+{
+  "extends": ["airbnb-typescript/base"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "settings": {
+    "import/resolver": {
+      "webpack": {
+        "config": "webpack.config.js"
+      }
+    }
+  },
+  "rules": {
+    "no-underscore-dangle": ["error", { "allowAfterThis": true }],
+    "no-console": ["error", { "allow": ["warn", "error", "info"] }],
+    "@typescript-eslint/explicit-member-accessibility": "error",
+    "no-new": 0
+  }
+}

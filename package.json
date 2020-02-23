@@ -1,0 +1,45 @@
+{
+  "name": "currencies-info-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "NODE_ENV=production webpack",
+    "start": "node ./build/index.js",
+    "eslint": "eslint --ext .ts ./src",
+    "postversion": "git push origin master"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run eslint"
+    }
+  },
+  "author": "Oleh Zaporozhets",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/mongodb": "^3.3.16",
+    "@types/node": "^13.7.4",
+    "@types/node-telegram-bot-api": "^0.40.2",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-typescript": "^7.0.0",
+    "eslint-import-resolver-webpack": "^0.12.1",
+    "eslint-plugin-import": "^2.20.1",
+    "husky": "^4.2.3",
+    "nodemon": "^2.0.2",
+    "ts-loader": "^6.2.1",
+    "ts-node": "^8.6.2",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.8.2",
+    "webpack": "^4.41.6",
+    "webpack-cli": "^3.3.11"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "dotenv": "^8.2.0",
+    "mongodb": "^3.5.3",
+    "node-telegram-bot-api": "^0.40.0"
+  }
+}
