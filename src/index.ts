@@ -19,6 +19,7 @@ async function main() {
 
     const bot = new Bot(
       process.env.BOT_TOKEN!,
+      Number(process.env.PORT!),
       usersRepository,
       financeAggregation,
     );

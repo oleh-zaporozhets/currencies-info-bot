@@ -11,12 +11,13 @@ class Bot {
 
   public constructor(
     token: string,
+    port: number,
     private _usersRepository: UsersRepository,
     private _financeAggregation: FinanceAggregation,
   ) {
     this._bot = new TelegramBot(token, {
       webHook: {
-        port: Number(process.env.PORT!),
+        port,
       },
     });
 
