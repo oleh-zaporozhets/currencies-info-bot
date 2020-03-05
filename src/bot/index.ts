@@ -11,10 +11,18 @@ class Bot {
     private _usersRepository: UsersRepository,
     private _financeAggregation: FinanceAggregation,
   ) {
-    this._bot = new TelegramBot(token, { polling: true });
+    this._bot = new TelegramBot(token, {
+      webHook: {
+        port: Number(process.env.PORT!),
+      },
+    });
 
     this._initializeRoutes();
   }
+
+  public setWebHook = (url: string) => {
+    this._bot.setWebHook(url);
+  };
 
   private _initializeRoutes = () => {
     this._bot.onText(/\/start/, this._start);

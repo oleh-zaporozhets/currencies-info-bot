@@ -17,7 +17,13 @@ async function main() {
     const financeApi = new FinanceApi();
     const financeAggregation = new FinanceAggregation(financeApi);
 
-    new Bot(process.env.BOT_TOKEN!, usersRepository, financeAggregation);
+    const bot = new Bot(
+      process.env.BOT_TOKEN!,
+      usersRepository,
+      financeAggregation,
+    );
+
+    bot.setWebHook(`${process.env.URL}/bot${process.env.BOT_TOKEN}`);
   } catch (e) {
     console.error(e);
   }
