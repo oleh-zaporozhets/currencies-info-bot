@@ -1,14 +1,26 @@
-import getSum from '../get-sum';
-
-function getAverage(array: Array<number | string>) {
+function getAverage(
+  previousValue: string | number,
+  currentValue: string | number,
+  currentIndex: number,
+  array: string[],
+) {
   const { length } = array;
-  let sum = array.reduce(getSum);
 
-  if (typeof sum === 'string') {
-    sum = Number(sum);
+  if (typeof previousValue === 'string') {
+    previousValue = Number(previousValue);
   }
 
-  return Math.round((sum / length) * 100) / 100;
+  if (typeof currentValue === 'string') {
+    currentValue = Number(currentValue);
+  }
+
+  if (currentIndex === length - 1) {
+    const finalSum = previousValue + currentValue;
+
+    return String(Math.round((finalSum / length) * 100) / 100);
+  }
+
+  return String(previousValue + currentValue);
 }
 
 export default getAverage;
