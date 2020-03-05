@@ -9,8 +9,8 @@ enum Spread {
 }
 
 interface Currency {
-  ask: Spread.ask;
-  bid: Spread.bid;
+  [Spread.bid]: string;
+  [Spread.ask]: string;
 }
 
 export { Currencies, Spread, Currency };
