@@ -212,7 +212,7 @@ class Bot {
         }
         default: {
           const _: never = action;
-          throw new Error(`Unknown action ${action}`);
+          throw new Error(`Unknown action ${_}`);
         }
       }
     } catch (e) {
