@@ -15,6 +15,9 @@
       "pre-commit": "npm run eslint"
     }
   },
+  "engines": {
+    "node": "10.15.1"
+  },
   "author": "Oleh Zaporozhets",
   "license": "ISC",
   "devDependencies": {
