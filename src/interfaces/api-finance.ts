@@ -1,4 +1,4 @@
-import { Currencies, Currency } from './common';
+import { Currencies, ICurrency } from './common';
 
 interface IOrganization {
   id: string;
@@ -12,7 +12,7 @@ interface IOrganization {
   address: string;
   link: string;
   currencies: {
-    [key in Currencies]: Currency;
+    [key in Currencies]: ICurrency;
   };
 }
 

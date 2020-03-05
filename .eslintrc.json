@@ -15,7 +15,16 @@
     "no-console": ["error", { "allow": ["warn", "error", "info"] }],
     "@typescript-eslint/explicit-member-accessibility": "error",
     "no-new": 0,
-    "lines-between-class-members": ["error", "always", { "exceptAfterSingleLine": true }],
-    "no-param-reassign": "off"
+    "lines-between-class-members": [
+      "error",
+      "always",
+      { "exceptAfterSingleLine": true }
+    ],
+    "no-param-reassign": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "varsIgnorePattern": "_" }
+    ],
+    "operator-linebreak": ["error", "after"]
   }
 }

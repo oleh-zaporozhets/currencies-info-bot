@@ -19,6 +19,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/lodash": "^4.14.149",
     "@types/mongodb": "^3.3.16",
     "@types/node": "^13.7.4",
     "@types/node-telegram-bot-api": "^0.40.2",
@@ -39,6 +40,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
+    "lodash": "^4.17.15",
     "mongodb": "^3.5.3",
     "node-telegram-bot-api": "^0.40.0"
   }

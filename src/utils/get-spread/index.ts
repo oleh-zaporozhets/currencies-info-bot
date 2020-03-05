@@ -1,7 +1,7 @@
-import { Spread, Currency } from '@/interfaces/common';
+import { Spread, ICurrency } from '@/interfaces/common';
 
 function getSpread(spread: Spread) {
-  return (currency: Currency) => currency[spread];
+  return (currency: ICurrency) => currency[spread];
 }
 
 export default getSpread;
