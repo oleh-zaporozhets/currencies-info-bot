@@ -4,6 +4,7 @@ import { IOrganization } from '@/interfaces/api-finance';
 import getArrayOfCurrencies from '@/utils/get-array-of-currencies';
 import getSpread from '@/utils/get-spread';
 import getAverage from '@/utils/get-average';
+import getCurrencyWithFlag from '@/utils/get-currency-with-flag';
 
 class FinanceAggregation {
   private _data: IOrganization[] | null = null;
@@ -32,7 +33,7 @@ class FinanceAggregation {
         currencyBidAverage,
       ].reduce(getAverage);
 
-      return `*${lookingCurrency}:* ${currencyBidAverage} / ${currencyAskAverage} | *${currencyWeightedAverage}*`;
+      return `*${getCurrencyWithFlag(lookingCurrency)}:*\nкупить: *${currencyBidAverage} UAH*\nпродать: *${currencyAskAverage} UAH*\nсреднее: *${currencyWeightedAverage} UAH*`;
     });
   };
 
