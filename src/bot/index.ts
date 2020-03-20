@@ -2,6 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import difference from 'lodash/difference';
 import UsersRepository from '@/repositories/users';
 import FinanceAggregation from '@/utils/finance-aggregation';
+import getCurrencyWithFlag from '@/utils/get-currency-with-flag';
 import { Actions, IAction } from '@/interfaces/bot';
 import IUser from '@/interfaces/user';
 import { Currencies } from '@/interfaces/common';
@@ -30,11 +31,32 @@ class Bot {
 
   private _initializeRoutes = () => {
     this._bot.onText(/\/start/, this._start);
-    this._bot.onText(/Актуальный курс валют 💱/, this._info);
+
+    this._bot.onText(/\/menu/, this._menu);
+
+    this._bot.onText(/Актуальный курс валют 💱/, this._exchange);
+    this._bot.onText(/\/exchange/, this._exchange);
+
     this._bot.onText(/Настройки ⚙️/, this._settings);
+    this._bot.onText(/\/settings/, this._settings);
+
     this._bot.onText(/Информация ℹ️/, this._information);
+    this._bot.onText(/\/information/, this._information);
+
     this._bot.on('callback_query', this._callbackQuery);
   };
+
+  private _getMenuButtons = (): TelegramBot.SendMessageOptions => ({
+    parse_mode: 'Markdown',
+    reply_markup: {
+      keyboard: [
+        [{ text: 'Актуальный курс валют 💱' }],
+        [{ text: 'Настройки ⚙️' }],
+        [{ text: 'Информация ℹ️' }],
+      ],
+      resize_keyboard: true,
+    },
+  });
 
   private _start = async (message: TelegramBot.Message) => {
     const {
@@ -58,25 +80,19 @@ class Bot {
 
     await this._usersRepository.insert(user);
 
-    const options: TelegramBot.SendMessageOptions = {
-      parse_mode: 'Markdown',
-      reply_markup: {
-        keyboard: [
-          [{ text: 'Актуальный курс валют 💱' }],
-          [{ text: 'Настройки ⚙️' }],
-          [{ text: 'Информация ℹ️' }],
-        ],
-        resize_keyboard: true,
-      },
-    };
-
     const msg =
       'Привет! 🚀 Я умею показывать актуальный курс валют в Украине 🇺🇦!\n\n*Актуальный курс валют 💱* - вернет актуальный курс валют для твоего списка. По умолчанию, это - *USD 🇺🇸* и *EUR 🇪🇺*.\n*Настройки ⚙️* - позволит изменить список активных валют.\n*Информация ℹ️* - дополнительная информация.';
 
-    this._bot.sendMessage(_id, msg, options);
+    this._bot.sendMessage(_id, msg, this._getMenuButtons());
   };
 
-  private _info = async (message: TelegramBot.Message) => {
+  private _menu = (message: TelegramBot.Message) => {
+    const { id } = message.chat;
+
+    this._bot.sendMessage(id, 'Меню:', this._getMenuButtons());
+  };
+
+  private _exchange = async (message: TelegramBot.Message) => {
     try {
       const { id: _id } = message.chat;
 
@@ -90,7 +106,7 @@ class Bot {
 
       const response = (
         await this._financeAggregation.getAggregation(currencies)
-      ).join('\n');
+      ).join('\n\n');
 
       if (!response) {
         this._bot.sendMessage(
@@ -146,9 +162,11 @@ class Bot {
         },
       };
 
+      const activeCurrencies = currencies.map(getCurrencyWithFlag).join(', ');
+
       this._bot.sendMessage(
         _id,
-        `Список активных валют:\n*${currencies.join(', ')}*`,
+        `Список активных валют:\n*${activeCurrencies}*`,
         options,
       );
     } catch (e) {
@@ -166,15 +184,14 @@ class Bot {
         throw new Error("User wasn't found");
       }
 
-      const { currencies } = foundUser;
+      const allCurrenciesList = Object.values(Currencies)
+        .map(getCurrencyWithFlag)
+        .join(', ');
+      const userCurrenciesList = foundUser.currencies
+        .map(getCurrencyWithFlag)
+        .join(', ');
 
-      const msg = `Я агрегирую курс обмена наличных валют в Украине 🇺🇦, из открытых источников.\nОбращаю твое внимание на то, что источники обновляются каждые 10 минут и содержат наиболее актуальную информацию – последние установленные на текущий момент курсы валют в банках и ПОВ Украины.\nЯ знаю следующие курсы валют:\n${Object.values(
-        Currencies,
-      ).join(
-        ', ',
-      )}\n\nДанные возвращаются в формате:\n*покупка* / *продажа* | *средневзвешенное покупки и продажи*\n\nСейчас твой список выглядит следующим образом: *${currencies.join(
-        ', ',
-      )}*`;
+      const msg = `Я агрегирую курс обмена наличных валют в Украине 🇺🇦 из открытых источников.\nОбращаю твое внимание на то, что источники обновляются каждые 10 минут и содержат наиболее актуальную информацию – последние установленные на текущий момент курсы валют в банках и ПОВ Украины.\nЯ знаю курс валют для:\n${allCurrenciesList}\n\nСейчас в твоем списке такие валюты:\n*${userCurrenciesList}*`;
 
       const options: TelegramBot.SendMessageOptions = {
         parse_mode: 'Markdown',
@@ -196,6 +213,7 @@ class Bot {
         chat_id: _id,
         message_id: messageId,
         reply_markup: {
+          parse_mode: 'Markdown',
           inline_keyboard: [],
         },
       };
@@ -281,7 +299,11 @@ class Bot {
         parse_mode: 'Markdown',
       };
 
-      this._bot.sendMessage(_id, `Готово! Добавили: *${currency}*`, options);
+      this._bot.sendMessage(
+        _id,
+        `Готово! Добавили: *${getCurrencyWithFlag(currency)}*`,
+        options,
+      );
     } catch (e) {
       console.error(e);
     }
@@ -330,7 +352,11 @@ class Bot {
         parse_mode: 'Markdown',
       };
 
-      this._bot.sendMessage(_id, `Готово! Удалили *${currency}*`, options);
+      this._bot.sendMessage(
+        _id,
+        `Готово! Удалили *${getCurrencyWithFlag(currency)}*`,
+        options,
+      );
     } catch (e) {
       console.error(e);
     }
