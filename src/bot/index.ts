@@ -189,7 +189,18 @@ class Bot {
   private _callbackQuery = async (CallbackQuery: TelegramBot.CallbackQuery) => {
     try {
       const { data, message } = CallbackQuery;
+      const { text, message_id: messageId } = message!;
       const { id: _id } = message!.chat;
+
+      const editMessageOptions = {
+        chat_id: _id,
+        message_id: messageId,
+        reply_markup: {
+          inline_keyboard: [],
+        },
+      };
+
+      this._bot.editMessageText(text!, editMessageOptions);
 
       const { action, payload }: IAction = JSON.parse(data!);
 
