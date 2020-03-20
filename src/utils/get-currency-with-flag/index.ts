@@ -1,6 +1,6 @@
 import { Currencies } from '@/interfaces/common';
 
-function getCurrencyWithFlag(currency: Currencies) {
+function getCurrencyWithFlag(currency: Currencies): string {
   switch (currency) {
     case Currencies.USD: {
       return `${currency} 🇺🇸`;
@@ -16,6 +16,9 @@ function getCurrencyWithFlag(currency: Currencies) {
     }
     case Currencies.RUB: {
       return `${currency} 🇷🇺`;
+    }
+    case Currencies.ILS: {
+      return `${currency} 🇮🇱`;
     }
     default: {
       const _: never = currency;

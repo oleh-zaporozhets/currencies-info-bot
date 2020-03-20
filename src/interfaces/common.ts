@@ -4,6 +4,7 @@ enum Currencies {
   'RUB' = 'RUB',
   'PLN' = 'PLN',
   'GBP' = 'GBP',
+  'ILS' = 'ILS',
 }
 
 enum Spread {
