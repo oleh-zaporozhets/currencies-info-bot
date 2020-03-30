@@ -2,7 +2,7 @@
   "name": "currencies-ua-bot",
   "version": "2.0.6",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
   "scripts": {
     "dev": "nodemon",
     "build": "NODE_ENV=production webpack",
@@ -23,6 +23,7 @@
     "url": "https://github.com/oleh-zaporozhets/currencies-ua-bot"
   },
   "author": "Oleh Zaporozhets",
+  "keywords": ["js", "javascript", "typescript", "node", "telegram-bot"],
   "license": "ISC",
   "devDependencies": {
     "@types/axios": "^0.14.0",
