@@ -18,7 +18,9 @@ class FinanceAggregation {
     return currencies.map((lookingCurrency) => {
       const currency = organizations
         .map(getArrayOfCurrencies(lookingCurrency))
-        .filter((it) => it);
+        .filter((it: any) => it);
+
+      if (!currency.length) return null;
 
       const currencyAskAverage = currency
         .map(getSpread(Spread.ask))

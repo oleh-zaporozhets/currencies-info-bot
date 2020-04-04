@@ -6,6 +6,7 @@ import getCurrencyWithFlag from '@/utils/get-currency-with-flag';
 import { Actions, IAction } from '@/interfaces/bot';
 import IUser from '@/interfaces/user';
 import { Currencies } from '@/interfaces/common';
+import isNullOnly from '@/utils/is-null-only';
 
 class Bot {
   private _bot: TelegramBot;
@@ -104,11 +105,7 @@ class Bot {
 
       const { currencies } = foundUser;
 
-      const response = (
-        await this._financeAggregation.getAggregation(currencies)
-      ).join('\n\n');
-
-      if (!response) {
+      if (!currencies.length) {
         this._bot.sendMessage(
           _id,
           'Добавь хотя бы одну активную валюту в настройках 🙂',
@@ -116,11 +113,22 @@ class Bot {
         return;
       }
 
+      const response = await this._financeAggregation.getAggregation(
+        currencies,
+      );
+
+      if (response.every(isNullOnly)) {
+        this._bot.sendMessage(_id, 'Никто не работает сейчас...😴');
+        return;
+      }
+
+      const responseToString = response.join('\n\n');
+
       const options: TelegramBot.SendMessageOptions = {
         parse_mode: 'Markdown',
       };
 
-      this._bot.sendMessage(_id, response, options);
+      this._bot.sendMessage(_id, responseToString, options);
     } catch (e) {
       console.error(e);
     }
