@@ -7,7 +7,7 @@ import FinanceAggregation from '@/utils/finance-aggregation';
 
 async function main() {
   try {
-    const mongoClient = await new mongodb.MongoClient(process.env.MONGO_URL!, {
+    const mongoClient = await new mongodb.MongoClient(process.env.MONGO_URL, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     }).connect();
@@ -18,8 +18,8 @@ async function main() {
     const financeAggregation = new FinanceAggregation(financeApi);
 
     const bot = new Bot(
-      process.env.BOT_TOKEN!,
-      Number(process.env.PORT!),
+      process.env.BOT_TOKEN,
+      Number(process.env.PORT),
       usersRepository,
       financeAggregation,
     );
