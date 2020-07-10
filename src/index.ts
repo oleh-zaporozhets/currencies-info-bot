@@ -1,9 +1,10 @@
-import mongodb from 'mongodb';
 import 'dotenv/config';
-import Bot from '@/bot';
-import UsersRepository from '@/repositories/users';
+import mongodb from 'mongodb';
 import FinanceApi from '@/api/finance';
-import FinanceAggregation from '@/utils/finance-aggregation';
+import Bot from '@/bot';
+import FinanceAggregation from '@/finance-aggregation';
+import UsersRepository from '@/repositories/users';
+import ResponseBuilder from '@/response-builder';
 
 async function main() {
   try {
@@ -12,21 +13,24 @@ async function main() {
       useUnifiedTopology: true,
     }).connect();
 
-    const usersCollection = mongoClient.db().collection('users');
-    const usersRepository = new UsersRepository(usersCollection);
+    const db = mongoClient.db();
+
+    const usersRepository = new UsersRepository(db);
+    const responseBuilder = new ResponseBuilder();
     const financeApi = new FinanceApi();
-    const financeAggregation = new FinanceAggregation(financeApi);
+    const financeAggregation = new FinanceAggregation(financeApi, responseBuilder);
 
     const bot = new Bot(
       process.env.BOT_TOKEN,
       Number(process.env.PORT),
       usersRepository,
       financeAggregation,
+      responseBuilder,
     );
 
     bot.setWebHook(`${process.env.URL}/bot${process.env.BOT_TOKEN}`);
   } catch (e) {
-    console.error(e);
+    process.stdout.write(e);
   }
 }
 

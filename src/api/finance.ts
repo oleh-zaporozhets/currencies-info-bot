@@ -1,12 +1,11 @@
-import { IFinanceResponse } from '@/interfaces/api-finance';
-import AxiosClient from './axios-client';
+import { IFinanceResponse } from '@/interfaces/api/finance';
+import HttpClient from './http-client';
 
-class FinanceApi extends AxiosClient {
+export default class extends HttpClient {
   public constructor() {
     super('http://resources.finance.ua/');
   }
 
-  public getCurrenciesExchangeRate = () => this._instance.get<IFinanceResponse>('/ru/public/currency-cash.json');
+  public getCurrenciesExchangeRate = () => (
+    this.instance.get<IFinanceResponse>('/ru/public/currency-cash.json'));
 }
-
-export default FinanceApi;

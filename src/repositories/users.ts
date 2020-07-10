@@ -1,35 +1,27 @@
-import mongodb from 'mongodb';
-import IUser from '@/interfaces/user';
-import { Currencies } from '@/interfaces/common';
+import { Db } from 'mongodb';
+import User from '@/models/user';
+import { CURRENCIES } from '@/interfaces/common';
+import Repository from './repository';
 
-class UsersRepository {
-  public constructor(private readonly _collection: mongodb.Collection) {}
+export default class extends Repository<User> {
+  public constructor(db: Db) {
+    super('users', db);
+  }
 
-  public find = async (_id: number) => {
-    const user = await this._collection.findOne<IUser>({ _id });
+  public findOneById = async (_id: number) => this.collection.findOne({ _id });
 
-    return user;
-  };
+  public upsert = (user: User) => (
+    this.collection.findOneAndUpdate(
+      { _id: user._id },
+      { $set: { ...user }, $setOnInsert: { createdAt: Date.now() } },
+      { upsert: true, returnOriginal: false },
+    ));
 
-  public insert = async (user: IUser) => {
-    await this._collection.insertOne(user);
+  public insert = async (user: User) => this.collection.insertOne(user);
 
-    return user;
-  };
+  public addCurrency = async (_id: number, currency: CURRENCIES) => (
+    this.collection.updateOne({ _id }, { $addToSet: { currencies: currency } }));
 
-  public addCurrency = async (_id: number, currency: Currencies) => {
-    await this._collection.updateOne(
-      { _id },
-      { $addToSet: { currencies: currency } },
-    );
-  };
-
-  public removeCurrency = async (_id: number, currency: Currencies) => {
-    await this._collection.updateOne(
-      { _id },
-      { $pull: { currencies: currency } },
-    );
-  };
+  public removeCurrency = async (_id: number, currency: CURRENCIES) => (
+    this.collection.updateOne({ _id }, { $pull: { currencies: currency } }));
 }
-
-export default UsersRepository;

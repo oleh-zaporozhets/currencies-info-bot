@@ -1,4 +1,4 @@
-enum Currencies {
+enum CURRENCIES {
   'EUR' = 'EUR',
   'USD' = 'USD',
   'RUB' = 'RUB',
@@ -7,14 +7,14 @@ enum Currencies {
   'ILS' = 'ILS',
 }
 
-enum Spread {
-  'bid' = 'bid',
-  'ask' = 'ask',
+enum SPREAD {
+  'BID' = 'bid',
+  'ASK' = 'ask',
 }
 
 interface ICurrency {
-  [Spread.bid]: string;
-  [Spread.ask]: string;
+  [SPREAD.BID]: string;
+  [SPREAD.ASK]: string;
 }
 
-export { Currencies, Spread, ICurrency };
+export { CURRENCIES, SPREAD, ICurrency };

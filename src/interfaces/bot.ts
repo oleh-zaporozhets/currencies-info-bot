@@ -1,4 +1,4 @@
-enum Actions {
+enum ACTIONS {
   'ADD_CURRENCIES' = 'ADD_CURRENCIES',
   'REMOVE_CURRENCIES' = 'REMOVE_CURRENCIES',
   'ADD_CURRENCY' = 'ADD_CURRENCY',
@@ -6,8 +6,8 @@ enum Actions {
 }
 
 interface IAction {
-  action: Actions;
+  action: ACTIONS;
   payload?: any;
 }
 
-export { Actions, IAction };
+export { ACTIONS, IAction };
