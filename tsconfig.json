@@ -2,18 +2,18 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "outDir": "build",
-    "baseUrl": "src",
+    "moduleResolution": "node",
     "removeComments": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "moduleResolution": "node",
     "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"]
     }
   },
   "include": ["src/**/*"],
