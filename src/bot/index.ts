@@ -1,10 +1,13 @@
-import difference from 'lodash/difference';
 import isNull from 'lodash/isNull';
-import TelegramBot from 'node-telegram-bot-api';
+import TelegramBot, {
+  Message,
+  SendMessageOptions,
+  CallbackQuery,
+  EditMessageTextOptions,
+} from 'node-telegram-bot-api';
 import FinanceAggregation from '@/finance-aggregation';
-import { ACTIONS, IAction } from '@/interfaces/bot';
+import { ACTIONS, Actions } from '@/interfaces/bot';
 import { CURRENCIES } from '@/interfaces/common';
-import User from '@/models/user';
 import UsersRepository from '@/repositories/users';
 import ResponseBuilder from '@/response-builder';
 import getCurrencyWithFlag from '@/utils/get-currency-with-flag';
@@ -34,23 +37,23 @@ export default class {
   };
 
   private initializeRoutes = () => {
-    this.bot.onText(/\/start/, this.start);
+    this.bot.onText(/\/start/, this.handleStart);
 
-    this.bot.onText(/\/menu/, this.menu);
+    this.bot.onText(/\/menu/, this.getMenu);
 
-    this.bot.onText(/Актуальный курс валют 💱/, this.exchange);
-    this.bot.onText(/\/exchange/, this.exchange);
+    this.bot.onText(/Актуальный курс валют 💱/, this.getExchange);
+    this.bot.onText(/\/exchange/, this.getExchange);
 
-    this.bot.onText(/Настройки ⚙️/, this.settings);
-    this.bot.onText(/\/settings/, this.settings);
+    this.bot.onText(/Настройки ⚙️/, this.getSettings);
+    this.bot.onText(/\/settings/, this.getSettings);
 
-    this.bot.onText(/Информация ℹ️/, this.information);
-    this.bot.onText(/\/information/, this.information);
+    this.bot.onText(/Информация ℹ️/, this.getInformation);
+    this.bot.onText(/\/information/, this.getInformation);
 
-    this.bot.on('callback_query', this.callbackQuery);
+    this.bot.on('callback_query', this.handleCallbackQuery);
   };
 
-  private getMenuButtons = (): TelegramBot.SendMessageOptions => ({
+  private getMenuButtons = (): SendMessageOptions => ({
     parse_mode: 'Markdown',
     reply_markup: {
       keyboard: [
@@ -62,7 +65,7 @@ export default class {
     },
   });
 
-  private start = async (message: TelegramBot.Message) => {
+  private handleStart = async (message: Message) => {
     const {
       id,
       first_name: firstName,
@@ -70,9 +73,8 @@ export default class {
       username,
     } = message.chat;
 
-    const user: User = {
+    const user = {
       _id: id,
-      currencies: [CURRENCIES.USD, CURRENCIES.EUR],
       firstName,
       lastName,
       username,
@@ -92,23 +94,17 @@ export default class {
     this.bot.sendMessage(id, msg, this.getMenuButtons());
   };
 
-  private menu = (message: TelegramBot.Message) => {
+  private getMenu = (message: Message) => {
     const { id } = message.chat;
 
     this.bot.sendMessage(id, 'Меню:', this.getMenuButtons());
   };
 
-  private exchange = async (message: TelegramBot.Message) => {
+  private getExchange = async (message: Message) => {
     try {
       const { id } = message.chat;
 
-      const foundUser = await this.usersRepository.findOneById(id);
-
-      if (!foundUser) {
-        throw new Error("User wasn't found");
-      }
-
-      const { currencies } = foundUser;
+      const currencies = await this.usersRepository.getCurrenciesForUserById(id);
 
       if (!currencies.length) {
         this.bot.sendMessage(id, 'Добавь хотя бы одну активную валюту в настройках 🙂');
@@ -124,7 +120,7 @@ export default class {
 
       const responseToString = response.join('\n\n');
 
-      const options: TelegramBot.SendMessageOptions = {
+      const options: SendMessageOptions = {
         parse_mode: 'Markdown',
       };
 
@@ -134,67 +130,52 @@ export default class {
     }
   };
 
-  private settings = async (message: TelegramBot.Message) => {
+  private getSettings = async (message: Message) => {
     try {
       const { id } = message.chat;
 
-      const foundUser = await this.usersRepository.findOneById(id);
+      const currencies = await this.usersRepository.getCurrenciesForUserById(id);
 
-      if (!foundUser) {
-        throw new Error("User wasn't found");
-      }
+      const allCurrenciesList = Object.values(CURRENCIES);
 
-      const { currencies } = foundUser;
+      const preparedCurrencies = allCurrenciesList.map((currency) => {
+        const textToShow = currencies.includes(currency) ? `${currency} ✅` : `${currency} ◻️`;
 
-      const options: TelegramBot.SendMessageOptions = {
+        return {
+          currency,
+          textToShow,
+        };
+      });
+
+      const options: SendMessageOptions = {
         parse_mode: 'Markdown',
         reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: 'Добавить валюту',
-                callback_data: JSON.stringify({
-                  action: ACTIONS.ADD_CURRENCIES,
-                }),
-              },
-            ],
-            [
-              {
-                text: 'Удалить валюту',
-                callback_data: JSON.stringify({
-                  action: ACTIONS.REMOVE_CURRENCIES,
-                }),
-              },
-            ],
-          ],
+          inline_keyboard: preparedCurrencies.map(({ currency, textToShow }) => [
+            {
+              text: textToShow,
+              callback_data: JSON.stringify({
+                action: ACTIONS.TOGGLE_CURRENCY,
+                payload: currency,
+              }),
+            },
+          ]),
         },
       };
 
-      const activeCurrencies = currencies.map(getCurrencyWithFlag).join(', ');
-
-      this.responseBuilder.addLine('Список активных валют:');
-      this.responseBuilder.addBoldLine(activeCurrencies);
-
-      const msg = this.responseBuilder.getResponse();
-
-      this.bot.sendMessage(id, msg, options);
+      this.bot.sendMessage(id, 'Выбери необходимые валюты:', options);
     } catch (e) {
       console.error(e);
     }
   };
 
-  private information = async (message: TelegramBot.Message) => {
+  private getInformation = async (message: Message) => {
     try {
       const { id } = message.chat;
 
-      const foundUser = await this.usersRepository.findOneById(id);
-
-      if (!foundUser) {
-        throw new Error("User wasn't found");
-      }
+      const currencies = await this.usersRepository.getCurrenciesForUserById(id);
 
       const allCurrenciesList = Object.values(CURRENCIES).map(getCurrencyWithFlag).join(', ');
-      const userCurrenciesList = foundUser.currencies.map(getCurrencyWithFlag).join(', ');
+      const userCurrenciesList = currencies.map(getCurrencyWithFlag).join(', ');
 
       this.responseBuilder.addLine('Я агрегирую курс обмена наличных валют в Украине 🇺🇦 из открытых источников, которые обновляются каждые 10 минут и содержат наиболее актуальную информацию — последние установленные на текущий момент курсы валют в банках и ПОВ Украины.');
       this.responseBuilder.addLine('Я знаю курс валют для:');
@@ -205,7 +186,7 @@ export default class {
 
       const msg = this.responseBuilder.getResponse();
 
-      const options: TelegramBot.SendMessageOptions = {
+      const options: SendMessageOptions = {
         parse_mode: 'Markdown',
       };
 
@@ -215,40 +196,14 @@ export default class {
     }
   };
 
-  private callbackQuery = async (CallbackQuery: TelegramBot.CallbackQuery) => {
+  private handleCallbackQuery = async (callbackQuery: CallbackQuery) => {
     try {
-      const { data, message } = CallbackQuery;
-      const { text, message_id: messageId } = message!;
-      const { id } = message!.chat;
-
-      const editMessageOptions = {
-        chat_id: id,
-        message_id: messageId,
-        reply_markup: {
-          parse_mode: 'Markdown',
-          inline_keyboard: [],
-        },
-      };
-
-      this.bot.editMessageText(text!, editMessageOptions);
-
-      const { action, payload }: IAction = JSON.parse(data!);
+      const { data, message } = callbackQuery;
+      const { action, payload }: Actions = JSON.parse(data!);
 
       switch (action) {
-        case ACTIONS.ADD_CURRENCIES: {
-          this.handleAddCurrencies(id);
-          break;
-        }
-        case ACTIONS.REMOVE_CURRENCIES: {
-          this.handleRemoveCurrencies(id);
-          break;
-        }
-        case ACTIONS.ADD_CURRENCY: {
-          this.handleAddCurrency(id, payload);
-          break;
-        }
-        case ACTIONS.REMOVE_CURRENCY: {
-          this.handleRemoveCurrency(id, payload);
+        case ACTIONS.TOGGLE_CURRENCY: {
+          this.toggleCurrency(message!, payload);
           break;
         }
         default: {
@@ -261,32 +216,38 @@ export default class {
     }
   };
 
-  private handleAddCurrencies = async (id: number) => {
+  private toggleCurrency = async (message: Message, currencyToToggle: CURRENCIES) => {
     try {
-      const foundUser = await this.usersRepository.findOneById(id);
+      const { text, message_id: messageId } = message!;
+      const { id } = message!.chat;
 
-      if (!foundUser) {
-        throw new Error("User wasn't found");
-      }
+      const { value: user } = await this.usersRepository.toggleCurrencyForUserById(
+        id,
+        currencyToToggle,
+      );
 
-      const { currencies } = foundUser;
+      const { currencies } = user!;
 
-      const globalCurrencies = Object.values(CURRENCIES);
+      const allCurrenciesList = Object.values(CURRENCIES);
 
-      const potentialCurrencies = difference(globalCurrencies, currencies);
+      const preparedCurrencies = allCurrenciesList.map((currency) => {
+        const textToShow = currencies.includes(currency) ? `${currency} ✅` : `${currency} ◻️`;
 
-      if (!potentialCurrencies.length) {
-        this.bot.sendMessage(id, 'У тебя уже максимальное количество валют 😉');
-        return;
-      }
+        return {
+          currency,
+          textToShow,
+        };
+      });
 
-      const options: TelegramBot.SendMessageOptions = {
+      const editMessageOptions: EditMessageTextOptions = {
+        chat_id: id,
+        message_id: messageId,
         reply_markup: {
-          inline_keyboard: potentialCurrencies.map((currency) => [
+          inline_keyboard: preparedCurrencies.map(({ currency, textToShow }) => [
             {
-              text: currency,
+              text: textToShow,
               callback_data: JSON.stringify({
-                action: ACTIONS.ADD_CURRENCY,
+                action: ACTIONS.TOGGLE_CURRENCY,
                 payload: currency,
               }),
             },
@@ -294,70 +255,7 @@ export default class {
         },
       };
 
-      this.bot.sendMessage(id, 'Какую валюту необходимо добавить?', options);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  private handleAddCurrency = async (_id: number, currency: CURRENCIES) => {
-    try {
-      await this.usersRepository.addCurrency(_id, currency);
-
-      const options: TelegramBot.SendMessageOptions = {
-        parse_mode: 'Markdown',
-      };
-
-      this.bot.sendMessage(_id, `Готово! Добавили: *${getCurrencyWithFlag(currency)}*`, options);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  private handleRemoveCurrencies = async (_id: number) => {
-    try {
-      const foundUser = await this.usersRepository.findOneById(_id);
-
-      if (!foundUser) {
-        throw new Error("User wasn't found");
-      }
-
-      const { currencies } = foundUser;
-
-      if (!currencies.length) {
-        this.bot.sendMessage(_id, 'Нет активных валют 🤭');
-        return;
-      }
-
-      const options: TelegramBot.SendMessageOptions = {
-        reply_markup: {
-          inline_keyboard: currencies.map((currency) => [
-            {
-              text: currency,
-              callback_data: JSON.stringify({
-                action: ACTIONS.REMOVE_CURRENCY,
-                payload: currency,
-              }),
-            },
-          ]),
-        },
-      };
-
-      this.bot.sendMessage(_id, 'Какую валюту необходимо удалить?', options);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  private handleRemoveCurrency = async (_id: number, currency: CURRENCIES) => {
-    try {
-      await this.usersRepository.removeCurrency(_id, currency);
-
-      const options: TelegramBot.SendMessageOptions = {
-        parse_mode: 'Markdown',
-      };
-
-      this.bot.sendMessage(_id, `Готово! Удалили *${getCurrencyWithFlag(currency)}*`, options);
+      this.bot.editMessageText(text!, editMessageOptions);
     } catch (e) {
       console.error(e);
     }

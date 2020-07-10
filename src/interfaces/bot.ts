@@ -1,13 +1,14 @@
+import { CURRENCIES } from './common';
+
 enum ACTIONS {
-  'ADD_CURRENCIES' = 'ADD_CURRENCIES',
-  'REMOVE_CURRENCIES' = 'REMOVE_CURRENCIES',
-  'ADD_CURRENCY' = 'ADD_CURRENCY',
-  'REMOVE_CURRENCY' = 'REMOVE_CURRENCY',
+  'TOGGLE_CURRENCY' = 'TOGGLE_CURRENCY',
 }
 
-interface IAction {
-  action: ACTIONS;
-  payload?: any;
+interface IToggleAction {
+  action: ACTIONS.TOGGLE_CURRENCY;
+  payload: CURRENCIES;
 }
 
-export { ACTIONS, IAction };
+type Actions = IToggleAction;
+
+export { ACTIONS, Actions };
