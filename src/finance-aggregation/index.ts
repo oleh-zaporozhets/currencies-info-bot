@@ -53,5 +53,5 @@ export default class {
     return this.data;
   };
 
-  private isFresh = () => Date.now() - this.fetchedTime >= 5 * 60 * 1000;
+  private isFresh = () => Date.now() - this.fetchedTime <= 5 * 60 * 1000;
 }
