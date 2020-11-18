@@ -5,5 +5,6 @@ declare namespace NodeJS {
     BOT_TOKEN: string;
     PORT: string;
     URL: string;
+    FINANCE_BASE_URL: string;
   }
 }

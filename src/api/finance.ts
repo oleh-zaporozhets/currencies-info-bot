@@ -3,7 +3,7 @@ import HttpClient from './http-client';
 
 export default class extends HttpClient {
   public constructor() {
-    super('http://resources.finance.ua/');
+    super(process.env.FINANCE_BASE_URL);
   }
 
   public getCurrenciesExchangeRate = () => (
